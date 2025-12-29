@@ -170,6 +170,8 @@ let alarmTriggered = false;
 const audio = document.getElementById("alarmAudio");
 const startBtn = document.getElementById("startBtn");
 const moodAnim = document.getElementById("moodAnim");
+const status = document.getElementById("status");
+
 
 /* Enable alarm */
 startBtn.addEventListener("click", () => {
@@ -203,6 +205,29 @@ audio.addEventListener("ended", () => {
 });
 
 /* Clock */
+    function getLockedMoodForCurrentHour() {
+    const now = new Date();
+    const hourKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
+
+    const savedKey = localStorage.getItem("moodHourKey");
+    const savedMood = localStorage.getItem("lockedMood");
+    const savedSong = localStorage.getItem("lockedSong");
+
+    if (savedKey === hourKey && savedMood && savedSong) {
+        return { mood: savedMood, song: savedSong };
+    }
+
+    const moods = Object.keys(songs);
+    const mood = moods[Math.floor(Math.random() * moods.length)];
+    const song = songs[mood][0];
+
+    localStorage.setItem("moodHourKey", hourKey);
+    localStorage.setItem("lockedMood", mood);
+    localStorage.setItem("lockedSong", song);
+
+    return { mood, song };
+}
+
 function updateClock() {
     const now = new Date();
     const h12 = now.getHours() % 12 || 12;
@@ -218,13 +243,13 @@ function updateClock() {
 
         alarmTriggered = true;
 
-        const moods = Object.keys(songs);
-        const randomMood = moods[Math.floor(Math.random() * moods.length)];
-        audio.src = songs[randomMood][0];
+        const locked = getLockedMoodForCurrentHour();
 
-        status.textContent = moodMessages[randomMood];
-        moodAnim.textContent = `🎧 ${randomMood.toUpperCase()} MOOD`;
-        audio.play();
+audio.src = locked.song;
+status.textContent = moodMessages[locked.mood];
+moodAnim.textContent = `🎧 ${locked.mood.toUpperCase()} MOOD`;
+audio.play();
+
     }
 }
 
