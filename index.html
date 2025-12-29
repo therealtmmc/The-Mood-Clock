@@ -69,9 +69,9 @@ h1 {
 
 /* Mood animation */
 .moodAnim {
-    font-size: 20px;
-    margin-bottom: 20px;
-    animation: floatText 2s ease-in-out infinite alternate;
+    <div id="countdown" style="font-size:13px;opacity:0.7;margin-bottom:10px;"></div>
+    <div id="history" style="font-size:13px;opacity:0.6;text-align:left;"></div>
+    <button id="shareBtn" style="display:none;margin-top:12px;">Share this hour</button>
 }
 
 /* Inputs */
@@ -146,7 +146,7 @@ input, select {
 <audio id="alarmAudio" preload="auto"></audio>
 
 <script>
-/* Songs per mood */
+/* ---------------- DATA ---------------- */
 const songs = {
     happy: ["Surfaces - Sunday Best (Lyrics).mp3"],
     sad: ["One Direction - Night Changes (Lyrics).mp3"],
@@ -154,102 +154,155 @@ const songs = {
     yearn: ["Small Fragile Hearts.mp3"]
 };
 
-/* Messages per mood */
 const moodMessages = {
-    happy: "Yay! Today’s a happy moment—let the smiles and laughter take over! 🌞🎵",
-    sad: "Feeling a little blue? It’s okay to let it out… sometimes songs are the best company. 💙🎶",
-    exciting: "Hold on tight! Something thrilling is about to happen… ⚡🎉",
-    yearn: "A quiet longing fills the air. Let the music speak for what words can’t. 💭💫"
+    happy: "Yay! Today’s a happy moment—let the smiles take over 🌞",
+    sad: "It’s okay to feel this way. Let the music sit with you 💙",
+    exciting: "Energy rising—let’s go ⚡",
+    yearn: "Some feelings don’t need answers 💭"
 };
 
+const moodColors = {
+    happy: "rgba(255,200,100,0.15)",
+    sad: "rgba(100,150,255,0.15)",
+    exciting: "rgba(255,80,80,0.18)",
+    yearn: "rgba(180,120,255,0.15)"
+};
+
+/* ---------------- STATE ---------------- */
 let alarmHour = 0;
 let alarmMinute = 0;
 let alarmEnabled = false;
 let alarmTriggered = false;
 
 const audio = document.getElementById("alarmAudio");
-const startBtn = document.getElementById("startBtn");
-const moodAnim = document.getElementById("moodAnim");
 const status = document.getElementById("status");
+const moodAnim = document.getElementById("moodAnim");
+const countdown = document.getElementById("countdown");
+const historyBox = document.getElementById("history");
+const shareBtn = document.getElementById("shareBtn");
 
+/* ---------------- UTIL ---------------- */
+function getHourKey(date = new Date()) {
+    return `${date.toDateString()}-${date.getHours()}`;
+}
 
-/* Enable alarm */
-startBtn.addEventListener("click", () => {
-    const hour = parseInt(hourInput.value);
-    const minute = parseInt(minuteInput.value);
-    const ampm = ampmInput.value;
+/* Silent hour (once per day) */
+function getSilentHour() {
+    const key = new Date().toDateString();
+    let silent = localStorage.getItem("silentHour");
+    let silentKey = localStorage.getItem("silentHourKey");
 
-    if (isNaN(hour) || isNaN(minute)) {
-        alert("Please enter a valid time.");
-        return;
+    if (silentKey !== key) {
+        silent = Math.floor(Math.random() * 24);
+        localStorage.setItem("silentHour", silent);
+        localStorage.setItem("silentHourKey", key);
     }
+    return parseInt(silent);
+}
 
-    alarmHour = ampm === "PM" ? (hour % 12) + 12 : hour % 12;
-    alarmMinute = minute;
-    alarmEnabled = true;
-    alarmTriggered = false;
-
-    status.textContent = `Alarm set for ${hour.toString().padStart(2,"0")}:${minute.toString().padStart(2,"0")} ${ampm}`;
-    alarmSettings.style.display = "none";
-    startBtn.style.display = "none";
-});
-
-/* Reset after song */
-audio.addEventListener("ended", () => {
-    alarmEnabled = false;
-    alarmTriggered = false;
-    moodAnim.textContent = "";
-    status.textContent = "Set your alarm time:";
-    alarmSettings.style.display = "flex";
-    startBtn.style.display = "block";
-});
-
-/* Clock */
-    function getLockedMoodForCurrentHour() {
-    const now = new Date();
-    const hourKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
-
+/* Locked mood per hour */
+function getLockedMood() {
+    const key = getHourKey();
     const savedKey = localStorage.getItem("moodHourKey");
-    const savedMood = localStorage.getItem("lockedMood");
-    const savedSong = localStorage.getItem("lockedSong");
 
-    if (savedKey === hourKey && savedMood && savedSong) {
-        return { mood: savedMood, song: savedSong };
+    if (savedKey === key) {
+        return {
+            mood: localStorage.getItem("lockedMood"),
+            song: localStorage.getItem("lockedSong")
+        };
     }
 
     const moods = Object.keys(songs);
     const mood = moods[Math.floor(Math.random() * moods.length)];
     const song = songs[mood][0];
 
-    localStorage.setItem("moodHourKey", hourKey);
+    localStorage.setItem("moodHourKey", key);
     localStorage.setItem("lockedMood", mood);
     localStorage.setItem("lockedSong", song);
 
     return { mood, song };
 }
 
+/* ---------------- ALARM SET ---------------- */
+startBtn.onclick = () => {
+    const hour = parseInt(hourInput.value);
+    const minute = parseInt(minuteInput.value);
+    const ampm = ampmInput.value;
+
+    if (isNaN(hour) || isNaN(minute)) return alert("Invalid time");
+
+    alarmHour = ampm === "PM" ? (hour % 12) + 12 : hour % 12;
+    alarmMinute = minute;
+    alarmEnabled = true;
+    alarmTriggered = false;
+
+    status.textContent = "Alarm armed. This hour already has a feeling.";
+    alarmSettings.style.display = "none";
+    startBtn.style.display = "none";
+};
+
+/* ---------------- RESET ---------------- */
+audio.onended = () => {
+    alarmEnabled = false;
+    alarmTriggered = false;
+    moodAnim.textContent = "";
+    shareBtn.style.display = "none";
+    status.textContent = "Set your alarm time:";
+    alarmSettings.style.display = "flex";
+    startBtn.style.display = "block";
+};
+
+/* ---------------- CLOCK ---------------- */
 function updateClock() {
     const now = new Date();
-    const h12 = now.getHours() % 12 || 12;
-    const m = now.getMinutes().toString().padStart(2,"0");
-    const s = now.getSeconds().toString().padStart(2,"0");
-    const ampm = now.getHours() >= 12 ? "PM" : "AM";
+    time.textContent = now.toLocaleTimeString();
 
-    time.textContent = `${h12}:${m}:${s} ${ampm}`;
+    if (alarmEnabled) {
+        const alarmTime = new Date();
+        alarmTime.setHours(alarmHour, alarmMinute, 0);
+        const diff = alarmTime - now;
+        if (diff > 0) countdown.textContent = `Alarm in ${Math.floor(diff/60000)}m ${Math.floor(diff/1000)%60}s`;
+    }
 
-    if (alarmEnabled && !alarmTriggered &&
+    if (
+        alarmEnabled &&
+        !alarmTriggered &&
         now.getHours() === alarmHour &&
-        now.getMinutes() === alarmMinute) {
-
+        now.getMinutes() === alarmMinute
+    ) {
         alarmTriggered = true;
 
-        const locked = getLockedMoodForCurrentHour();
+        const silentHour = getSilentHour();
+        const locked = getLockedMood();
 
-audio.src = locked.song;
-status.textContent = moodMessages[locked.mood];
-moodAnim.textContent = `🎧 ${locked.mood.toUpperCase()} MOOD`;
-audio.play();
+        document.body.style.backgroundColor = moodColors[locked.mood];
+        status.textContent = moodMessages[locked.mood];
+        moodAnim.textContent = `🎧 ${locked.mood.toUpperCase()} HOUR`;
 
+        // Save history
+        const history = JSON.parse(localStorage.getItem("history") || "[]");
+        history.push(`${now.getHours()}:00 — ${locked.mood}`);
+        localStorage.setItem("history", JSON.stringify(history.slice(-5)));
+
+        historyBox.innerHTML = "<b>Today</b><br>" + history.join("<br>");
+
+        if (now.getHours() !== silentHour) {
+            audio.src = locked.song;
+            audio.play();
+        } else {
+            moodAnim.textContent += " (Silent)";
+        }
+
+        shareBtn.style.display = "block";
+        shareBtn.onclick = () => {
+            navigator.clipboard.writeText(`This hour feels ${locked.mood}.`);
+            alert("Copied to clipboard");
+        };
+
+        // Progressive trust
+        let uses = parseInt(localStorage.getItem("uses") || 0) + 1;
+        localStorage.setItem("uses", uses);
+        if (uses > 5) status.textContent += " You’ve been here before.";
     }
 }
 
