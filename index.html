@@ -9,7 +9,7 @@
 <style>
 :root {
     --bg: #0d0f12;
-    --card: rgba(25,25,30,0.9);
+    --card: rgba(25,25,30,0.85);
     --text: #e8e8ea;
     --muted: #9a9aa2;
     --accent: #a8b4ff;
@@ -31,37 +31,22 @@ body {
 .app {
     width: 360px;
     background: var(--card);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(20px);
     border-radius: 28px;
     padding: 28px;
     box-shadow: 0 30px 80px rgba(0,0,0,0.6);
 }
 
 /* Header */
-.header h1 {
-    font-size: 26px;
-    margin: 0;
-}
-.header p {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 4px;
-}
+.header { margin-bottom: 20px; }
+.header h1 { font-size: 26px; margin:0; font-weight:700; }
+.header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
 /* Time */
-#time {
-    font-size: 52px;
-    font-weight: 300;
-    margin: 22px 0 6px;
-}
+#time { font-size: 52px; font-weight: 300; letter-spacing:1px; margin-bottom:10px; }
 
 /* Mood */
-#mood {
-    font-size: 15px;
-    color: var(--accent);
-    min-height: 22px;
-    margin-bottom: 18px;
-}
+#mood { font-size: 15px; color: var(--accent); margin-bottom: 20px; min-height: 20px; }
 
 /* Buttons */
 button {
@@ -69,18 +54,20 @@ button {
     padding: 14px;
     border-radius: 16px;
     border: none;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.05);
     color: var(--text);
     font-size: 14px;
     cursor: pointer;
     margin-bottom: 10px;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
-
+button:hover { background: rgba(255,255,255,0.08); }
 button.primary {
     background: var(--accent);
     color: #0d0f12;
     font-weight: 600;
 }
+button.primary:hover { background: #bac4ff; }
 
 /* Writing */
 textarea {
@@ -88,28 +75,28 @@ textarea {
     border-radius: 16px;
     border: none;
     padding: 14px;
-    background: rgba(255,255,255,0.06);
+    font-family: 'Montserrat', sans-serif;
+    background: rgba(255,255,255,0.05);
     color: var(--text);
     resize: none;
     margin-bottom: 10px;
+    line-height: 1.5;
 }
 
 /* Sections */
 .section {
     display: none;
-    margin-top: 16px;
+    margin-top: 18px;
     font-size: 13px;
     color: var(--muted);
 }
-
 .entry {
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .entry:last-child { border-bottom: none; }
 </style>
 </head>
-
 <body>
 
 <div class="app">
@@ -133,24 +120,22 @@ textarea {
     <div id="messageHistory" class="section"></div>
 </div>
 
-<audio id="audio" preload="auto"></audio>
+<audio id="audio"></audio>
 
 <script>
 /* ---------- DATA ---------- */
 const moods = ["happy", "sad", "yearn", "exciting"];
-
 const songs = {
     happy: "happy.mp3",
     sad: "sad.mp3",
-    yearn: "yearn.mp3",
-    exciting: "exciting.mp3"
+    exciting: "exciting.mp3",
+    yearn: "yearn.mp3"
 };
 
 /* ---------- HELPERS ---------- */
 function getHourKey(date = new Date()) {
     return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
 }
-
 function formatTime(date) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
@@ -165,28 +150,35 @@ updateClock();
 /* ---------- ELEMENTS ---------- */
 const moodLabel = document.getElementById("mood");
 const audio = document.getElementById("audio");
+const input = document.getElementById("messageInput");
+const saveBtn = document.getElementById("saveMessageBtn");
+
+/* ---------- UNLOCK AUDIO ---------- */
+function unlockAudio() {
+    audio.volume = 0.8;
+    audio.play().then(()=>audio.pause()).catch(()=>{});
+}
 
 /* ---------- START HOUR ---------- */
 document.getElementById("startHourBtn").onclick = () => {
+    unlockAudio();
+
     const key = getHourKey();
+    let mood;
 
     if (localStorage.getItem(key)) {
-        const saved = JSON.parse(localStorage.getItem(key));
-        moodLabel.textContent = `This hour feels ${saved.mood}`;
-        audio.src = songs[saved.mood];
-        audio.play();
-        return;
+        mood = JSON.parse(localStorage.getItem(key)).mood;
+    } else {
+        mood = moods[Math.floor(Math.random() * moods.length)];
+        localStorage.setItem(key, JSON.stringify({ mood }));
+        saveHourHistory(mood);
     }
 
-    const mood = moods[Math.floor(Math.random() * moods.length)];
-    localStorage.setItem(key, JSON.stringify({ mood }));
-
-    saveHourHistory(mood);
     moodLabel.textContent = `This hour feels ${mood}`;
 
     audio.src = songs[mood];
     audio.load();
-    audio.play().catch(err => console.error("Audio error:", err));
+    audio.play().catch(err => console.error("Playback blocked:", err));
 };
 
 /* ---------- HOUR HISTORY ---------- */
@@ -199,15 +191,12 @@ function saveHourHistory(mood) {
 function renderHourHistory() {
     const box = document.getElementById("hourHistory");
     const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    box.innerHTML = history.slice().reverse().map(h =>
+    box.innerHTML = history.reverse().map(h =>
         `<div class="entry">${h.time}<br><strong>${h.mood}</strong></div>`
     ).join("");
 }
 
 /* ---------- MESSAGES ---------- */
-const input = document.getElementById("messageInput");
-const saveBtn = document.getElementById("saveMessageBtn");
-
 document.getElementById("writeBtn").onclick = () => {
     input.style.display = "block";
     saveBtn.style.display = "block";
@@ -217,21 +206,17 @@ saveBtn.onclick = () => {
     if (!input.value.trim()) return;
 
     const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    messages.push({
-        time: new Date().toLocaleString(),
-        text: input.value
-    });
-
+    messages.push({ time: new Date().toLocaleString(), text: input.value });
     localStorage.setItem("messages", JSON.stringify(messages));
+
     input.value = "";
     renderMessages();
 };
 
-/* ---------- MESSAGE HISTORY ---------- */
 function renderMessages() {
     const box = document.getElementById("messageHistory");
     const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    box.innerHTML = messages.slice().reverse().map(m =>
+    box.innerHTML = messages.reverse().map(m =>
         `<div class="entry">${m.time}<br>${m.text}</div>`
     ).join("");
 }
