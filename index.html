@@ -4,88 +4,131 @@
 <meta charset="UTF-8">
 <title>Mood Clock</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
 
 <style>
+:root {
+    --bg: #0d0f12;
+    --card: rgba(25,25,30,0.85);
+    --text: #e8e8ea;
+    --muted: #9a9aa2;
+    --accent: #a8b4ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Montserrat', sans-serif;
     margin: 0;
     height: 100vh;
-    background: linear-gradient(180deg, #1b1b1b, #0e0e0e);
+    background: radial-gradient(circle at top, #1a1d26, #0d0f12);
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #eaeaea;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text);
 }
 
 .app {
     width: 360px;
-    background: rgba(25,25,25,0.9);
-    border-radius: 24px;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border-radius: 28px;
     padding: 28px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
 }
 
-h1 {
+/* Header */
+.header {
+    margin-bottom: 24px;
+}
+
+.header h1 {
     font-size: 26px;
-    margin: 0 0 4px;
+    font-weight: 700;
+    margin: 0;
 }
 
-.subtitle {
+.header p {
     font-size: 13px;
-    opacity: 0.6;
-    margin-bottom: 20px;
+    color: var(--muted);
+    margin-top: 4px;
 }
 
+/* Time */
 #time {
-    font-size: 48px;
-    margin-bottom: 12px;
+    font-size: 52px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
 }
 
+/* Mood */
 #mood {
-    font-size: 16px;
-    margin-bottom: 18px;
-    opacity: 0.85;
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 22px;
+    min-height: 20px;
 }
 
+/* Buttons */
 button {
     width: 100%;
     padding: 14px;
-    border-radius: 14px;
+    border-radius: 16px;
     border: none;
-    background: #2e2e2e;
-    color: #eaeaea;
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
     font-size: 14px;
     cursor: pointer;
     margin-bottom: 10px;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 button:hover {
-    background: #3a3a3a;
+    background: rgba(255,255,255,0.08);
 }
 
+button.primary {
+    background: var(--accent);
+    color: #0d0f12;
+    font-weight: 600;
+}
+
+button.primary:hover {
+    background: #bac4ff;
+}
+
+/* Writing */
 textarea {
     width: 100%;
-    border-radius: 14px;
+    border-radius: 16px;
     border: none;
-    padding: 12px;
-    resize: none;
+    padding: 14px;
     font-family: 'Montserrat', sans-serif;
-    background: #1a1a1a;
-    color: #eaeaea;
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    resize: none;
     margin-bottom: 10px;
+    line-height: 1.5;
 }
 
+/* Sections */
 .section {
     display: none;
-    margin-top: 14px;
+    margin-top: 18px;
     font-size: 13px;
-    line-height: 1.5;
-    opacity: 0.8;
+    color: var(--muted);
 }
 
 .entry {
-    margin-bottom: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.entry:last-child {
+    border-bottom: none;
 }
 </style>
 </head>
@@ -93,18 +136,20 @@ textarea {
 <body>
 
 <div class="app">
-    <h1>Mood Clock</h1>
-    <div class="subtitle">One hour. One feeling.</div>
+    <div class="header">
+        <h1>Mood Clock</h1>
+        <p>one hour · one feeling</p>
+    </div>
 
     <div id="time">--:--</div>
-    <div id="mood">No hour started</div>
+    <div id="mood"></div>
 
-    <button id="startHourBtn">Start this hour</button>
-    <button id="writeBtn">Write what I’m feeling</button>
+    <button id="startHourBtn" class="primary">Start this hour</button>
+    <button id="writeBtn">Write how I feel</button>
     <button id="toggleHistoryBtn">Hour history</button>
     <button id="toggleMessagesBtn">My messages</button>
 
-    <textarea id="messageInput" placeholder="Write freely..." rows="3" style="display:none;"></textarea>
+    <textarea id="messageInput" rows="3" placeholder="Write without judging…" style="display:none;"></textarea>
     <button id="saveMessageBtn" style="display:none;">Save message</button>
 
     <div id="hourHistory" class="section"></div>
@@ -115,7 +160,6 @@ textarea {
 
 <script>
 /* ---------- DATA ---------- */
-
 const moods = ["happy", "sad", "yearn", "exciting"];
 
 const songs = {
@@ -126,7 +170,6 @@ const songs = {
 };
 
 /* ---------- HELPERS ---------- */
-
 function getHourKey(date = new Date()) {
     return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
 }
@@ -136,21 +179,17 @@ function formatTime(date) {
 }
 
 /* ---------- CLOCK ---------- */
-
 function updateClock() {
-    const now = new Date();
-    document.getElementById("time").textContent = formatTime(now);
+    document.getElementById("time").textContent = formatTime(new Date());
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ---------- STATE ---------- */
-
+/* ---------- ELEMENTS ---------- */
 const moodLabel = document.getElementById("mood");
 const audio = document.getElementById("audio");
 
 /* ---------- START HOUR ---------- */
-
 document.getElementById("startHourBtn").onclick = () => {
     const key = getHourKey();
 
@@ -161,46 +200,35 @@ document.getElementById("startHourBtn").onclick = () => {
     }
 
     const mood = moods[Math.floor(Math.random() * moods.length)];
+    localStorage.setItem(key, JSON.stringify({ mood }));
 
-    const record = {
-        mood,
-        startedAt: new Date().toISOString()
-    };
-
-    localStorage.setItem(key, JSON.stringify(record));
     saveHourHistory(mood);
-
     moodLabel.textContent = `This hour feels ${mood}`;
+
     audio.src = songs[mood];
     audio.play().catch(() => {});
 };
 
 /* ---------- HOUR HISTORY ---------- */
-
 function saveHourHistory(mood) {
     const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    history.push({
-        time: new Date().toLocaleString(),
-        mood
-    });
+    history.push({ time: new Date().toLocaleString(), mood });
     localStorage.setItem("hourHistory", JSON.stringify(history));
 }
 
 function renderHourHistory() {
     const box = document.getElementById("hourHistory");
     const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    box.innerHTML = history.map(h =>
-        `<div class="entry">${h.time}<br>Mood: ${h.mood}</div>`
-    ).reverse().join("");
+    box.innerHTML = history.reverse().map(h =>
+        `<div class="entry">${h.time}<br><strong>${h.mood}</strong></div>`
+    ).join("");
 }
 
 /* ---------- MESSAGES ---------- */
-
-const writeBtn = document.getElementById("writeBtn");
 const input = document.getElementById("messageInput");
 const saveBtn = document.getElementById("saveMessageBtn");
 
-writeBtn.onclick = () => {
+document.getElementById("writeBtn").onclick = () => {
     input.style.display = "block";
     saveBtn.style.display = "block";
 };
@@ -208,13 +236,9 @@ writeBtn.onclick = () => {
 saveBtn.onclick = () => {
     if (!input.value.trim()) return;
 
-    const key = getHourKey();
-    const hourData = JSON.parse(localStorage.getItem(key) || "{}");
-
     const messages = JSON.parse(localStorage.getItem("messages") || "[]");
     messages.push({
         time: new Date().toLocaleString(),
-        mood: hourData.mood || "unknown",
         text: input.value
     });
 
@@ -224,17 +248,15 @@ saveBtn.onclick = () => {
 };
 
 /* ---------- MESSAGE HISTORY ---------- */
-
 function renderMessages() {
     const box = document.getElementById("messageHistory");
     const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    box.innerHTML = messages.map(m =>
-        `<div class="entry">${m.time}<br><i>${m.mood}</i><br>${m.text}</div>`
-    ).reverse().join("");
+    box.innerHTML = messages.reverse().map(m =>
+        `<div class="entry">${m.time}<br>${m.text}</div>`
+    ).join("");
 }
 
 /* ---------- TOGGLES ---------- */
-
 document.getElementById("toggleHistoryBtn").onclick = () => {
     const box = document.getElementById("hourHistory");
     box.style.display = box.style.display === "block" ? "none" : "block";
