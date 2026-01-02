@@ -2,271 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mood Clock</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
-
+<title>Mood City</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg: #0d0f12;
-    --card: rgba(25,25,30,0.85);
-    --text: #e8e8ea;
-    --muted: #9a9aa2;
-    --accent: #a8b4ff;
-}
-
-* {
-    box-sizing: border-box;
+    --bg: #f7f0ff;
+    --card: #ffffff;
+    --primary: #7b5cff;
+    --secondary: #ffd700;
+    --text: #333;
+    --muted: #777;
 }
 
 body {
     margin: 0;
-    height: 100vh;
-    background: radial-gradient(circle at top, #1a1d26, #0d0f12);
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(135deg, #d4c1ff, #f7f0ff);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Montserrat', sans-serif;
-    color: var(--text);
+    height: 100vh;
 }
 
-.app {
-    width: 360px;
+.card {
     background: var(--card);
-    backdrop-filter: blur(20px);
-    border-radius: 28px;
-    padding: 28px;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    border-radius: 20px;
+    width: 400px;
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
-/* Header */
-.header {
-    margin-bottom: 24px;
+h1 {
+    color: var(--primary);
+    margin-bottom: 16px;
 }
 
-.header h1 {
-    font-size: 26px;
-    font-weight: 700;
-    margin: 0;
-}
-
-.header p {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 4px;
-}
-
-/* Time */
-#time {
-    font-size: 52px;
-    font-weight: 300;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-}
-
-/* Mood */
-#mood {
-    font-size: 15px;
-    color: var(--accent);
-    margin-bottom: 22px;
-    min-height: 20px;
-}
-
-/* Buttons */
-button {
+input, button {
     width: 100%;
-    padding: 14px;
-    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    border-radius: 12px;
     border: none;
-    background: rgba(255,255,255,0.05);
-    color: var(--text);
     font-size: 14px;
+}
+
+input {
+    border: 1px solid #ccc;
+}
+
+button {
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
     cursor: pointer;
-    margin-bottom: 10px;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: 0.2s;
 }
 
 button:hover {
-    background: rgba(255,255,255,0.08);
-}
-
-button.primary {
-    background: var(--accent);
-    color: #0d0f12;
-    font-weight: 600;
-}
-
-button.primary:hover {
-    background: #bac4ff;
-}
-
-/* Writing */
-textarea {
-    width: 100%;
-    border-radius: 16px;
-    border: none;
-    padding: 14px;
-    font-family: 'Montserrat', sans-serif;
-    background: rgba(255,255,255,0.05);
-    color: var(--text);
-    resize: none;
-    margin-bottom: 10px;
-    line-height: 1.5;
+    background: #5d3ccc;
 }
 
 /* Sections */
 .section {
     display: none;
     margin-top: 18px;
-    font-size: 13px;
-    color: var(--muted);
+    text-align: left;
 }
 
-.entry {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+.code-input {
+    letter-spacing: 4px;
+    font-weight: bold;
+    text-align: center;
 }
 
-.entry:last-child {
-    border-bottom: none;
+/* Kahoot style */
+.kahoot-btn {
+    background: var(--secondary);
+    color: #333;
+    font-weight: bold;
+    margin-top: 10px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="app">
-    <div class="header">
-        <h1>Mood Clock</h1>
-        <p>one hour · one feeling</p>
+<div class="card" id="loginCard">
+    <h1>Mood Kahoot</h1>
+
+    <!-- Step 1: Email input -->
+    <div id="emailStep">
+        <input type="email" id="emailInput" placeholder="Enter your Gmail" required>
+        <button id="sendCodeBtn">Send Verification Code</button>
+        <p id="emailMsg" style="color:red;font-size:12px;"></p>
     </div>
 
-    <div id="time">--:--</div>
-    <div id="mood"></div>
+    <!-- Step 2: Code verification -->
+    <div id="codeStep" style="display:none;">
+        <input type="text" id="codeInput" placeholder="Enter code" class="code-input">
+        <button id="verifyCodeBtn">Verify</button>
+        <p id="codeMsg" style="color:red;font-size:12px;"></p>
+    </div>
 
-    <button id="startHourBtn" class="primary">Start this hour</button>
-    <button id="writeBtn">Write how I feel</button>
-    <button id="toggleHistoryBtn">Hour history</button>
-    <button id="toggleMessagesBtn">My messages</button>
-
-    <textarea id="messageInput" rows="3" placeholder="Write without judging…" style="display:none;"></textarea>
-    <button id="saveMessageBtn" style="display:none;">Save message</button>
-
-    <div id="hourHistory" class="section"></div>
-    <div id="messageHistory" class="section"></div>
+    <!-- Step 3: Password setup -->
+    <div id="passwordStep" style="display:none;">
+        <input type="password" id="passwordInput" placeholder="Create a password">
+        <button id="createPassBtn">Set Password</button>
+        <p id="passMsg" style="color:red;font-size:12px;"></p>
+    </div>
 </div>
 
-<audio id="audio"></audio>
+<div class="card" id="homeCard" style="display:none;">
+    <h1>Welcome, <span id="userEmail"></span>!</h1>
+    <button class="kahoot-btn" id="moodHourBtn">Mood Hour</button>
+    <button class="kahoot-btn" id="howAreYouBtn">How Are You Quiz</button>
+    <button class="kahoot-btn" id="moodExpressBtn">Mood Express</button>
+    <button class="kahoot-btn" id="moodDecisionBtn">Mood Decision</button>
+</div>
 
 <script>
-/* ---------- DATA ---------- */
-const moods = ["happy", "sad", "yearn", "exciting"];
+/* ======= State ======= */
+let currentEmail = "";
+let verificationCode = "";
 
-const songs = {
-  happy: "happy.mp3",
-  sad: "sad.mp3",
-  yearn: "yearn.mp3",
-  exciting: "exciting.mp3"
+/* ======= Elements ======= */
+const emailStep = document.getElementById("emailStep");
+const codeStep = document.getElementById("codeStep");
+const passwordStep = document.getElementById("passwordStep");
+const loginCard = document.getElementById("loginCard");
+const homeCard = document.getElementById("homeCard");
+const userEmailSpan = document.getElementById("userEmail");
+
+/* ======= Functions ======= */
+
+// Generates a 6-digit verification code
+function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+/* ======= Event Listeners ======= */
+
+// Step 1: Send verification code
+document.getElementById("sendCodeBtn").onclick = () => {
+    const email = document.getElementById("emailInput").value.trim();
+    if (!email.endsWith("@gmail.com")) {
+        document.getElementById("emailMsg").textContent = "Please use a Gmail address.";
+        return;
+    }
+    currentEmail = email;
+    verificationCode = generateCode();
+
+    // 🔔 HERE: You need to send 'verificationCode' to 'currentEmail' using backend/email service
+    console.log("Code sent to email:", verificationCode);
+
+    emailStep.style.display = "none";
+    codeStep.style.display = "block";
+    document.getElementById("emailMsg").textContent = "";
 };
 
-/* ---------- HELPERS ---------- */
-function getHourKey(date = new Date()) {
-    return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
-}
+// Step 2: Verify code
+document.getElementById("verifyCodeBtn").onclick = () => {
+    const code = document.getElementById("codeInput").value.trim();
+    if (code === verificationCode) {
+        codeStep.style.display = "none";
+        passwordStep.style.display = "block";
+        document.getElementById("codeMsg").textContent = "";
+    } else {
+        document.getElementById("codeMsg").textContent = "Incorrect code, try again.";
+    }
+};
 
-function formatTime(date) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-/* ---------- CLOCK ---------- */
-function updateClock() {
-    document.getElementById("time").textContent = formatTime(new Date());
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-/* ---------- ELEMENTS ---------- */
-const moodLabel = document.getElementById("mood");
-const audio = document.getElementById("audio");
-
-/* ---------- START HOUR ---------- */
-document.getElementById("startHourBtn").onclick = () => {
-    const key = getHourKey();
-
-    if (localStorage.getItem(key)) {
-        const saved = JSON.parse(localStorage.getItem(key));
-        moodLabel.textContent = `This hour feels ${saved.mood}`;
+// Step 3: Set password
+document.getElementById("createPassBtn").onclick = () => {
+    const pass = document.getElementById("passwordInput").value.trim();
+    if (pass.length < 4) {
+        document.getElementById("passMsg").textContent = "Password must be 4+ characters.";
         return;
     }
 
-    const mood = moods[Math.floor(Math.random() * moods.length)];
-    localStorage.setItem(key, JSON.stringify({ mood }));
+    // Save user credentials (in real app, send to backend)
+    localStorage.setItem(currentEmail, JSON.stringify({ password: pass }));
 
-    saveHourHistory(mood);
-    moodLabel.textContent = `This hour feels ${mood}`;
-
-    audio.src = songs[mood];
-    audio.play().catch(() => {});
-};
-
-/* ---------- HOUR HISTORY ---------- */
-function saveHourHistory(mood) {
-    const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    history.push({ time: new Date().toLocaleString(), mood });
-    localStorage.setItem("hourHistory", JSON.stringify(history));
-}
-
-function renderHourHistory() {
-    const box = document.getElementById("hourHistory");
-    const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    box.innerHTML = history.reverse().map(h =>
-        `<div class="entry">${h.time}<br><strong>${h.mood}</strong></div>`
-    ).join("");
-}
-
-/* ---------- MESSAGES ---------- */
-const input = document.getElementById("messageInput");
-const saveBtn = document.getElementById("saveMessageBtn");
-
-document.getElementById("writeBtn").onclick = () => {
-    input.style.display = "block";
-    saveBtn.style.display = "block";
-};
-
-saveBtn.onclick = () => {
-    if (!input.value.trim()) return;
-
-    const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    messages.push({
-        time: new Date().toLocaleString(),
-        text: input.value
-    });
-
-    localStorage.setItem("messages", JSON.stringify(messages));
-    input.value = "";
-    renderMessages();
-};
-
-/* ---------- MESSAGE HISTORY ---------- */
-function renderMessages() {
-    const box = document.getElementById("messageHistory");
-    const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    box.innerHTML = messages.reverse().map(m =>
-        `<div class="entry">${m.time}<br>${m.text}</div>`
-    ).join("");
-}
-
-/* ---------- TOGGLES ---------- */
-document.getElementById("toggleHistoryBtn").onclick = () => {
-    const box = document.getElementById("hourHistory");
-    box.style.display = box.style.display === "block" ? "none" : "block";
-    renderHourHistory();
-};
-
-document.getElementById("toggleMessagesBtn").onclick = () => {
-    const box = document.getElementById("messageHistory");
-    box.style.display = box.style.display === "block" ? "none" : "block";
-    renderMessages();
+    // Show home
+    loginCard.style.display = "none";
+    homeCard.style.display = "block";
+    userEmailSpan.textContent = currentEmail;
 };
 </script>
 
