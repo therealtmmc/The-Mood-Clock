@@ -4,26 +4,13 @@
 <meta charset="UTF-8">
 <title>Mood Clock</title>
 
-<!-- Font -->
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-:root {
-    --bg: #f2f4ff;
-    --card: #ffffff;
-    --text: #2b2b2b;
-    --muted: #777;
-    --accent: #6c7cff;
-}
-
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
     height: 100vh;
-    background: linear-gradient(180deg, #e8ebff, #fdfdff);
+    background: linear-gradient(180deg, #e8ebff, #ffffff);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -32,87 +19,43 @@ body {
 
 .app {
     width: 360px;
-    background: var(--card);
+    background: #fff;
     border-radius: 28px;
-    padding: 26px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+    padding: 24px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.15);
 }
 
-/* Header */
-.header h1 {
+h1 {
     margin: 0;
     font-size: 26px;
-    font-weight: 700;
 }
 
-.header p {
-    margin-top: 6px;
+p {
+    color: #777;
     font-size: 13px;
-    color: var(--muted);
 }
 
-/* Time */
 #time {
-    margin: 22px 0 6px;
-    font-size: 48px;
-    font-weight: 300;
+    font-size: 46px;
+    margin: 20px 0 6px;
 }
 
-/* Mood */
 #mood {
-    font-size: 15px;
-    color: var(--accent);
     min-height: 22px;
-    margin-bottom: 18px;
+    color: #6c7cff;
+    margin-bottom: 20px;
 }
 
-/* Buttons */
 button {
     width: 100%;
     padding: 14px;
+    margin-bottom: 10px;
     border-radius: 16px;
     border: none;
-    font-family: inherit;
-    font-size: 14px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    background: #f1f2ff;
-    color: var(--text);
-}
-
-button.primary {
-    background: var(--accent);
+    background: #6c7cff;
     color: white;
+    font-size: 14px;
     font-weight: 600;
-}
-
-button:hover {
-    opacity: 0.95;
-}
-
-/* Writing */
-textarea {
-    width: 100%;
-    padding: 14px;
-    border-radius: 16px;
-    border: none;
-    resize: none;
-    font-family: inherit;
-    background: #f1f2ff;
-    margin-bottom: 10px;
-}
-
-/* Sections */
-.section {
-    display: none;
-    margin-top: 16px;
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.entry {
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
 }
 </style>
 </head>
@@ -120,78 +63,47 @@ textarea {
 <body>
 
 <div class="app">
-    <div class="header">
-        <h1>Mood Clock</h1>
-        <p>one hour · one feeling</p>
-    </div>
+    <h1>Mood Clock</h1>
+    <p>one hour · one feeling</p>
 
     <div id="time">--:--</div>
     <div id="mood"></div>
 
-    <button id="startHourBtn" class="primary">Start this hour</button>
-    <button id="writeBtn">Write how I feel</button>
-    <button id="toggleHistoryBtn">Hour history</button>
-    <button id="toggleMessagesBtn">My messages</button>
-
-    <textarea id="messageInput" rows="3" placeholder="Write without judging…" style="display:none;"></textarea>
-    <button id="saveMessageBtn" style="display:none;">Save message</button>
-
-    <div id="hourHistory" class="section"></div>
-    <div id="messageHistory" class="section"></div>
+    <button id="startHourBtn">Start this hour</button>
 </div>
 
-<!-- AUDIO -->
-<audio id="audio" preload="auto"></audio>
+<audio id="audio"></audio>
 
 <script>
-/* ================= DATA ================= */
-const moods = ["happy", "sad", "yearn", "exciting"];
+const moods = ["happy", "sad", "yearn", "excited"];
 
 const songs = {
+    happy: "Surfaces - Sunday Best (Lyrics).mp3",
     sad: "Small Fragile Hearts.mp3",
     yearn: "One Direction - Night Changes (Lyrics).mp3",
-    exciting: "PSY - Gangnam Style (1950's Soul Version).mp3",
-    happy: "Surfaces - Sunday Best (Lyrics).mp3"
+    excited: "PSY - Gangnam Style (1950's Soul Version).mp3"
 };
 
-/* ================= ELEMENTS ================= */
 const timeEl = document.getElementById("time");
 const moodEl = document.getElementById("mood");
 const audio = document.getElementById("audio");
 
-/* ================= AUDIO UNLOCK (CRITICAL) ================= */
-let audioUnlocked = false;
-
-function unlockAudio() {
-    if (audioUnlocked) return;
-
-    audio.src = "";
-    audio.play().then(() => {
-        audioUnlocked = true;
-        console.log("🔓 Audio unlocked");
-    }).catch(() => {
-        console.log("⚠️ Unlock attempt blocked");
-    });
-}
-
-/* ================= TIME ================= */
 function updateClock() {
     const now = new Date();
-    timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    timeEl.textContent = now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ================= HELPERS ================= */
 function getHourKey() {
     const d = new Date();
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
 }
 
-/* ================= START HOUR ================= */
-document.getElementById("startHourBtn").onclick = () => {
-    unlockAudio(); // REQUIRED
-
+document.getElementById("startHourBtn").addEventListener("click", () => {
     const key = getHourKey();
     let mood;
 
@@ -200,7 +112,6 @@ document.getElementById("startHourBtn").onclick = () => {
     } else {
         mood = moods[Math.floor(Math.random() * moods.length)];
         localStorage.setItem(key, JSON.stringify({ mood }));
-        saveHourHistory(mood);
     }
 
     moodEl.textContent = `This hour feels ${mood}`;
@@ -208,69 +119,11 @@ document.getElementById("startHourBtn").onclick = () => {
     audio.pause();
     audio.currentTime = 0;
     audio.src = songs[mood];
-    audio.volume = 0.9;
 
     audio.play()
-        .then(() => console.log("🎵 Playing:", mood))
-        .catch(err => console.error("❌ Playback blocked:", err));
-};
-
-/* ================= HOUR HISTORY ================= */
-function saveHourHistory(mood) {
-    const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    history.push({ time: new Date().toLocaleString(), mood });
-    localStorage.setItem("hourHistory", JSON.stringify(history));
-}
-
-function renderHourHistory() {
-    const box = document.getElementById("hourHistory");
-    const history = JSON.parse(localStorage.getItem("hourHistory") || "[]");
-    box.innerHTML = history.slice().reverse().map(h =>
-        `<div class="entry">${h.time}<br><strong>${h.mood}</strong></div>`
-    ).join("");
-}
-
-/* ================= MESSAGES ================= */
-const input = document.getElementById("messageInput");
-const saveBtn = document.getElementById("saveMessageBtn");
-
-document.getElementById("writeBtn").onclick = () => {
-    input.style.display = "block";
-    saveBtn.style.display = "block";
-};
-
-saveBtn.onclick = () => {
-    if (!input.value.trim()) return;
-
-    const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    messages.push({ time: new Date().toLocaleString(), text: input.value });
-    localStorage.setItem("messages", JSON.stringify(messages));
-
-    input.value = "";
-    renderMessages();
-};
-
-/* ================= MESSAGE HISTORY ================= */
-function renderMessages() {
-    const box = document.getElementById("messageHistory");
-    const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-    box.innerHTML = messages.slice().reverse().map(m =>
-        `<div class="entry">${m.time}<br>${m.text}</div>`
-    ).join("");
-}
-
-/* ================= TOGGLES ================= */
-document.getElementById("toggleHistoryBtn").onclick = () => {
-    const box = document.getElementById("hourHistory");
-    box.style.display = box.style.display === "block" ? "none" : "block";
-    renderHourHistory();
-};
-
-document.getElementById("toggleMessagesBtn").onclick = () => {
-    const box = document.getElementById("messageHistory");
-    box.style.display = box.style.display === "block" ? "none" : "block";
-    renderMessages();
-};
+        .then(() => console.log("Playing:", mood))
+        .catch(err => alert("Audio blocked: " + err.message));
+});
 </script>
 
 </body>
