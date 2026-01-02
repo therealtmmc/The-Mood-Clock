@@ -8,12 +8,12 @@
 
 <style>
 :root {
-    --bg1: #f6f7ff;
-    --bg2: #e9f0ff;
+    --bg: #f0f2f5;
     --card: #ffffff;
-    --text: #2d2d3a;
-    --muted: #7a7a99;
+    --text: #1c1e21;
+    --muted: #65676b;
     --accent: #8ea2ff;
+    --soft: #f7f8ff;
     --shadow: rgba(0,0,0,0.08);
 }
 
@@ -24,7 +24,7 @@
 body {
     margin: 0;
     height: 100vh;
-    background: linear-gradient(180deg, var(--bg1), var(--bg2));
+    background: var(--bg);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -32,64 +32,85 @@ body {
     color: var(--text);
 }
 
-/* App bubble */
+/* App container */
 .app {
-    width: 360px;
+    width: 380px;
+    background: var(--bg);
+    border-radius: 28px;
+    padding: 16px;
+}
+
+/* Card (like IG/FB post) */
+.card {
     background: var(--card);
-    border-radius: 32px;
-    padding: 26px;
-    box-shadow: 0 20px 40px var(--shadow);
-    text-align: center;
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 0 10px 30px var(--shadow);
+    margin-bottom: 14px;
 }
 
 /* Header */
-h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.subtitle {
-    font-size: 13px;
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a8b4ff, #d1d8ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+}
+
+.header-text h1 {
+    font-size: 16px;
+    margin: 0;
+}
+
+.header-text p {
+    font-size: 12px;
+    margin: 2px 0 0;
     color: var(--muted);
-    margin-top: 6px;
-    margin-bottom: 22px;
 }
 
 /* Time */
 #time {
-    font-size: 56px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
+    font-size: 48px;
+    font-weight: 700;
+    margin: 18px 0 6px;
 }
 
-/* Mood text */
+/* Mood */
 #mood {
-    min-height: 22px;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--accent);
-    margin-bottom: 22px;
+    min-height: 20px;
 }
 
 /* Buttons */
 button {
     width: 100%;
-    padding: 14px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 16px;
     border: none;
-    background: #f1f3ff;
+    background: var(--soft);
     color: var(--text);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    margin-bottom: 10px;
-    transition: transform 0.1s ease, background 0.2s ease;
+    margin-top: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 button:hover {
-    background: #e6eaff;
-    transform: scale(1.02);
+    background: #e9ecff;
+    transform: scale(1.01);
 }
 
 button.primary {
@@ -97,34 +118,27 @@ button.primary {
     color: white;
 }
 
-button.primary:hover {
-    background: #7b8fff;
-}
-
-/* Writing */
+/* Input */
 textarea {
     width: 100%;
-    border-radius: 20px;
+    border-radius: 16px;
     border: none;
-    padding: 14px;
+    padding: 12px;
+    background: var(--soft);
     font-family: 'Montserrat', sans-serif;
-    background: #f6f7ff;
-    color: var(--text);
     resize: none;
-    margin-bottom: 10px;
-    line-height: 1.5;
+    margin-top: 8px;
 }
 
 /* Sections */
 .section {
     display: none;
-    margin-top: 16px;
-    text-align: left;
+    margin-top: 10px;
 }
 
 .entry {
-    padding: 12px 0;
-    border-bottom: 1px dashed #e3e6ff;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
     font-size: 13px;
 }
 
@@ -137,35 +151,49 @@ textarea {
 <body>
 
 <div class="app">
-    <h1>Mood Clock</h1>
-    <div class="subtitle">one hour · one feeling</div>
 
-    <div id="time">--:--</div>
-    <div id="mood"></div>
+    <!-- MAIN CARD -->
+    <div class="card">
+        <div class="header">
+            <div class="avatar">MC</div>
+            <div class="header-text">
+                <h1>Mood Clock</h1>
+                <p>one hour · one feeling</p>
+            </div>
+        </div>
 
-    <button id="startHourBtn" class="primary">Start this hour</button>
-    <button id="writeBtn">Write how I feel</button>
-    <button id="toggleHistoryBtn">Hour history</button>
-    <button id="toggleMessagesBtn">My messages</button>
+        <div id="time">--:--</div>
+        <div id="mood"></div>
 
-    <textarea id="messageInput" rows="3" placeholder="Write gently…" style="display:none;"></textarea>
-    <button id="saveMessageBtn" style="display:none;">Save message</button>
+        <button id="startHourBtn" class="primary">Start this hour</button>
+        <button id="writeBtn">Write how I feel</button>
+    </div>
 
-    <div id="hourHistory" class="section"></div>
-    <div id="messageHistory" class="section"></div>
+    <!-- WRITE CARD -->
+    <div class="card">
+        <button id="toggleHistoryBtn">Hour history</button>
+        <button id="toggleMessagesBtn">My messages</button>
+
+        <textarea id="messageInput" rows="3" placeholder="Write what you’re feeling…" style="display:none;"></textarea>
+        <button id="saveMessageBtn" style="display:none;">Save message</button>
+
+        <div id="hourHistory" class="section"></div>
+        <div id="messageHistory" class="section"></div>
+    </div>
+
 </div>
 
 <audio id="audio"></audio>
 
 <script>
 /* ---------- DATA ---------- */
-const moods = ["happy", "sad", "yearn", "exciting"];
+const moods = ["sad", "yearn", "exciting", "happy"];
 
 const songs = {
-    happy: "happy.mp3",
-    sad: "sad.mp3",
-    yearn: "yearn.mp3",
-    exciting: "exciting.mp3"
+    sad: "Small Fragile Hearts.mp3",
+    yearn: "One Direction - Night Changes (Lyrics).mp3",
+    exciting: "PSY - Gangnam Style (1950's Soul Version).mp3",
+    happy: "Surfaces - Sunday Best (Lyrics).mp3"
 };
 
 /* ---------- HELPERS ---------- */
@@ -204,6 +232,7 @@ document.getElementById("startHourBtn").onclick = () => {
     moodLabel.textContent = `This hour feels ${mood}`;
     audio.src = songs[mood];
     audio.volume = 0.8;
+    audio.load();
     audio.play().catch(() => {});
 };
 
